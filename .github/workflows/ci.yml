@@ -1,4 +1,4 @@
-name: Docker CI with GUI Selenium Tests
+name: CI - GUI + API Tests + Docker
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -36,10 +36,20 @@ jobs:
         with:
           version: latest
 
-      # 5️⃣ Run Maven build and tests (GUI tests)
-      - name: Build project and run tests
-        run: mvn clean package
+      # 5️⃣ Install Xvfb for GUI tests
+      - name: Install Xvfb
+        run: sudo apt-get install -y xvfb
 
-      # 6️⃣ Build Docker image
+      # 6️⃣ Run GUI + API tests with Maven
+      - name: Run Maven tests
+        run: |
+          # Start virtual display
+          Xvfb :99 -screen 0 1920x1080x24 &
+          export DISPLAY=:99
+          
+          # Run Maven build with tests
+          mvn clean package
+
+      # 7️⃣ Build Docker image
       - name: Build Docker image
         run: docker build -t my-app:latest .

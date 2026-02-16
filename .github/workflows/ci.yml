@@ -1,4 +1,4 @@
-name: Docker CI with Chrome Tests
+name: Docker CI with GUI Selenium Tests
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Set up Java
+      # 2️⃣ Set up Java 17
       - name: Set up Java 17
         uses: actions/setup-java@v3
         with:
@@ -36,8 +36,8 @@ jobs:
         with:
           version: latest
 
-      # 5️⃣ Build project with Maven (run tests)
-      - name: Build project with Maven
+      # 5️⃣ Run Maven build and tests (GUI tests)
+      - name: Build project and run tests
         run: mvn clean package
 
       # 6️⃣ Build Docker image

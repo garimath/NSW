@@ -1,0 +1,131 @@
+package stepDefinitions;
+
+import io.cucumber.java.Before;
+import io.cucumber.java.en.*;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.junit.Assert;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Duration;
+import java.util.Properties;
+
+import static java.lang.Thread.sleep;
+
+public class LoginSteps {
+
+    Properties properties = new Properties();
+    WebDriver driver;
+
+    // Load config once
+    public LoginSteps() {
+        try {
+            InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties");
+            if(input == null) {
+                throw new RuntimeException("config.properties not found! Check resources folder and classpath.");
+            }
+            properties.load(input);
+            System.out.println("Properties loaded: " + properties);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Before("@login")
+    public void setUp() {
+        WebDriverManager.chromedriver().setup();
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+    }
+
+    @Given("user opens the NSW Stamp Duty page")
+    public void openPage() {
+        //loadConfig();   // load config file
+        String url = properties.getProperty("baseUrl");
+        driver.get(url);
+        System.out.println("website launched "+url);
+    }
+
+    @Then("the page should load successfully")
+    public void verifyPageLoaded() {
+        String title = driver.getTitle();
+        Assert.assertTrue("Page did not load correctly",
+                title.contains("Check motor vehicle stamp duty"));
+        System.out.println("Check motor vehicle stamp duty page loaded successfully");
+    }
+
+    @When("user clicks on Check online button")
+    public void clickCheckOnline() {
+        driver.findElement(By.linkText("Check online")).click();
+        System.out.println("Check online button clicked.");
+    }
+
+    @Then("Revenue NSW calculators page should appear")
+    public void verifyCalculatorPage() {
+        WebElement heading = driver.findElement(By.tagName("h1"));
+        Assert.assertTrue(heading.getText().contains("Revenue NSW calculators"));
+        System.out.println("Revenue NSW calculators page loaded successfully");
+    }
+
+    @When("user selects Yes option")
+    public void selectYesOption() {
+        String option = properties.getProperty("vehicleOption");
+        if(option.equalsIgnoreCase("Yes")) {
+            driver.findElement(By.xpath("//label[contains(text(),'Yes')]")).click();
+        } else {
+            driver.findElement(By.xpath("//label[contains(text(),'No')]")).click();
+        }
+        System.out.println("Registration for passenger vehicle selected as "+option);
+    }
+
+    @When("user enters purchase price")
+    public void enterPurchasePrice() {
+        String amount = properties.getProperty("purchaseAmount");
+        WebElement priceField = driver.findElement(By.id("purchasePrice"));
+        priceField.sendKeys(amount);
+        System.out.println("Purchase Price entered as "+amount);
+    }
+
+    @When("user clicks on Calculate button")
+    public void clickCalculate() {
+        driver.findElement(By.cssSelector("button.btn.btn-primary")).click();
+        System.out.println("Calculate button is clicked");
+    }
+
+    @Then("calculation result should be displayed correctly")
+    public void verifyResults() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("modal-content")));
+        System.out.println("Motor vehicle registration window is visible: " + modal.isDisplayed());
+       /* try {
+            Thread.sleep(5000);  // wait for 5 seconds
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }*/
+
+        String passengerVehicleAnswer = driver.findElement(By.xpath("//td[text()='Is this registration for a passenger vehicle?']/following-sibling::td")).getText().trim();
+        Assert.assertEquals(properties.getProperty("vehicleOption"), passengerVehicleAnswer);
+        System.out.println("Passenger vehicle shown as "+passengerVehicleAnswer);
+
+        String purchaseValue = driver.findElement(By.xpath("//td[text()='Purchase price or value']/following-sibling::td")).getText().replace("$", "").replace(",", "").replace(".00", "");
+        Assert.assertEquals(properties.getProperty("purchaseAmount"), purchaseValue);
+        System.out.println("Purchase amount shown as "+purchaseValue);
+
+        String dutyPayable = driver.findElements(By.cssSelector("td.focus")).get(7).getText();
+
+        if(dutyPayable != null){
+            System.out.println("Duty payable text is visible "+dutyPayable);
+        } else{
+            System.out.println("Duty payable text is not visible");
+            assert(false);
+        }
+        driver.quit();
+    }
+}

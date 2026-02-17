@@ -11,30 +11,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Java
+      # 2️⃣ Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Install Chrome
+      # 3️⃣ Install Google Chrome
+      - name: Install Google Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
+      # 4️⃣ Install ChromeDriver
+      - name: Install ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      # 5️⃣ Install Xvfb (virtual display)
       - name: Install Xvfb
         run: sudo apt-get install -y xvfb
 
+      # 6️⃣ Run GUI + API tests
       - name: Run Tests
         run: |
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
           mvn clean test
 
+      # 7️⃣ Upload Cucumber Report (ALWAYS runs)
       - name: Upload Cucumber Report
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: Cucumber-Report

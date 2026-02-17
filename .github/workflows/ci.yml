@@ -1,0 +1,41 @@
+name: Automation CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Install Xvfb
+        run: sudo apt-get install -y xvfb
+
+      - name: Run Tests
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 &
+          export DISPLAY=:99
+          mvn clean test
+
+      - name: Upload Cucumber Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: Cucumber-Report
+          path: target/cucumber-reports/

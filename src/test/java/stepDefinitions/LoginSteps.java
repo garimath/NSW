@@ -8,6 +8,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -39,9 +40,23 @@ public class LoginSteps {
 
     @Before("@login")
     public void setUp() {
-        WebDriverManager.chromedriver().setup();
-        driver = new ChromeDriver();
+        // Configure ChromeOptions for headless mode (required in CI)
+        ChromeOptions options = new ChromeOptions();
+
+        // Headless mode (runs without GUI)
+        options.addArguments("--headless=new");  // Modern headless mode
+        options.addArguments("--no-sandbox");    // Required for Linux CI
+        options.addArguments("--disable-dev-shm-usage"); // Prevent memory issues
+        options.addArguments("--disable-gpu");   // Recommended for headless Linux
+        options.addArguments("--remote-allow-origins=*"); // Fixes ChromeDriver connection issues
+
+        // Initialize WebDriver with options
+        driver = new ChromeDriver(options);
+
+        // Optional: maximize window in local runs (ignored in headless)
         driver.manage().window().maximize();
+
+        // Implicit wait
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
 

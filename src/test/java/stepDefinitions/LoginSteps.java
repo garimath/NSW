@@ -43,17 +43,19 @@ public class LoginSteps {
         // Configure ChromeOptions for headless mode (required in CI)
         ChromeOptions options = new ChromeOptions();
 
-        // Headless mode (runs without GUI)
-        options.addArguments("--headless=new");  // Modern headless mode
-        options.addArguments("--no-sandbox");    // Required for Linux CI
-        options.addArguments("--disable-dev-shm-usage"); // Prevent memory issues
-        options.addArguments("--disable-gpu");   // Recommended for headless Linux
-        options.addArguments("--remote-allow-origins=*"); // Fixes ChromeDriver connection issues
+        // If running in CI → enable headless
+        if (System.getenv("CI") != null) {
+            options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--disable-gpu");
+        } else {
+            options.addArguments("--start-maximized");
+        }
 
         // Initialize WebDriver with options
         driver = new ChromeDriver(options);
 
-        // Optional: maximize window in local runs (ignored in headless)
         driver.manage().window().maximize();
 
         // Implicit wait
@@ -116,6 +118,8 @@ public class LoginSteps {
 
     @Then("calculation result should be displayed correctly")
     public void verifyResults() {
+
+        //wait for the next window to appear
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("modal-content")));
         System.out.println("Motor vehicle registration window is visible: " + modal.isDisplayed());
@@ -125,14 +129,17 @@ public class LoginSteps {
             e.printStackTrace();
         }*/
 
+        //compare the vehicle answer is similar to what was entered in previous page
         String passengerVehicleAnswer = driver.findElement(By.xpath("//td[text()='Is this registration for a passenger vehicle?']/following-sibling::td")).getText().trim();
         Assert.assertEquals(properties.getProperty("vehicleOption"), passengerVehicleAnswer);
         System.out.println("Passenger vehicle shown as "+passengerVehicleAnswer);
 
+        //compare the purchase value is similar to what was entered in previous page
         String purchaseValue = driver.findElement(By.xpath("//td[text()='Purchase price or value']/following-sibling::td")).getText().replace("$", "").replace(",", "").replace(".00", "");
         Assert.assertEquals(properties.getProperty("purchaseAmount"), purchaseValue);
         System.out.println("Purchase amount shown as "+purchaseValue);
 
+        //validate that duty payable is visible
         String dutyPayable = driver.findElements(By.cssSelector("td.focus")).get(7).getText();
 
         if(dutyPayable != null){

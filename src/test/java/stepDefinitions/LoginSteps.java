@@ -67,17 +67,14 @@ public class LoginSteps {
 
         } else if (browser.equals("edge")) {
             EdgeOptions options = new EdgeOptions();
-
             if (System.getenv("CI") != null) {
-                options.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu");
+                options.addArguments("headless=new", "--no-sandbox", "--disable-gpu");
             } else {
                 options.addArguments("--start-maximized");
             }
-
-            // Point to pre-downloaded EdgeDriver
-            System.setProperty("webdriver.edge.driver", "C:\\Drivers\\edgedriver_win64\\msedgedriver.exe");
-
+            WebDriverManager.edgedriver().setup(); // <-- automatically downloads correct Edge driver
             driver = new EdgeDriver(options);
+        
         } else {
             throw new IllegalArgumentException("Browser not supported: " + browser);
         }

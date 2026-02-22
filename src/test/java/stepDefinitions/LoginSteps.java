@@ -151,7 +151,7 @@ public class LoginSteps {
             System.out.println("Motor vehicle registration window is visible: " + modal.isDisplayed());
         }
 
-        //compare the vehicle answer is similar to what was entered in previous page
+        /*//compare the vehicle answer is similar to what was entered in previous page
         String passengerVehicleAnswer = driver.findElement(By.xpath("//td[text()='Is this registration for a passenger vehicle?']/following-sibling::td")).getText().trim();
         Assert.assertEquals(properties.getProperty("vehicleOption"), passengerVehicleAnswer);
         System.out.println("Passenger vehicle shown as "+passengerVehicleAnswer);
@@ -169,6 +169,38 @@ public class LoginSteps {
         } else{
             System.out.println("Duty payable text is not visible");
             assert(false);
+        }*/
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
+// Use contains() for more robust XPath in CI headless mode
+        WebElement passengerVehicleElement = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//td[contains(text(),'Is this registration for a passenger vehicle?')]/following-sibling::td")
+        ));
+        String passengerVehicleAnswer = passengerVehicleElement.getText().trim();
+        Assert.assertEquals(properties.getProperty("vehicleOption"), passengerVehicleAnswer);
+        System.out.println("Passenger vehicle shown as " + passengerVehicleAnswer);
+
+// --- Compare purchase value ---
+        WebElement purchaseValueElement = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//td[contains(text(),'Purchase price or value')]/following-sibling::td")
+        ));
+        String purchaseValue = purchaseValueElement.getText().replace("$", "")
+                .replace(",", "")
+                .replace(".00", "")
+                .trim();
+        Assert.assertEquals(properties.getProperty("purchaseAmount"), purchaseValue);
+        System.out.println("Purchase amount shown as " + purchaseValue);
+
+// --- Validate duty payable ---
+        WebElement dutyPayableElement = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("td.focus"))).get(7);
+        String dutyPayable = dutyPayableElement.getText().trim();
+
+        if (!dutyPayable.isEmpty()) {
+            System.out.println("Duty payable text is visible: " + dutyPayable);
+        } else {
+            System.out.println("Duty payable text is not visible");
+            Assert.fail("Duty payable text is missing");
         }
         driver.quit();
     }

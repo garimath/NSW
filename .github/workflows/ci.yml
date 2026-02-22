@@ -36,6 +36,12 @@ jobs:
           sudo apt update
           sudo apt install -y microsoft-edge-stable
 
+          - name: Cache WebDriverManager
+           uses: actions/cache@v3
+           with:
+           path: ~/.m2/repository/io/github/bonigarcia/webdrivermanager
+           key: ${{ runner.os }}-webdrivermanager-${{ hashFiles('**/pom.xml') }}
+
       # 5️⃣ Install Xvfb for headless GUI
       - name: Install Xvfb
         run: sudo apt-get install -y xvfb

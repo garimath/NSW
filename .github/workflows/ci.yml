@@ -11,34 +11,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout your repo
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      # 2️⃣ Setup Java
+      - name: Set up Java
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Install Google Chrome
+      # 3️⃣ Install Google Chrome
+      - name: Install Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Install ChromeDriver
-        uses: nanasess/setup-chromedriver@v2
+      # 4️⃣ Install Microsoft Edge (optional)
+      - name: Install Microsoft Edge
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge.list'
+          sudo apt update
+          sudo apt install -y microsoft-edge-stable
 
+      # 5️⃣ Install Xvfb for headless GUI
       - name: Install Xvfb
         run: sudo apt-get install -y xvfb
 
+      # 6️⃣ Run tests (Chrome/Edge headless based on config.properties)
       - name: Run Tests
         run: |
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
           mvn clean test
 
+      # 7️⃣ Upload Cucumber HTML report
       - name: Upload Cucumber Report
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Cucumber-Report

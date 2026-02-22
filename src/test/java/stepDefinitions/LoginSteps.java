@@ -139,6 +139,11 @@ public class LoginSteps {
     public void verifyResults() {
         if(System.getenv("CI") != null) {
             System.out.println("Running in CI → skipping modal");
+            try {
+                Thread.sleep(5000); // wait 5 seconds for modal to appear
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         } else {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
             WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("modal-content")));

@@ -2,19 +2,17 @@ package stepDefinitions;
 
 import io.cucumber.java.Before;
 import io.cucumber.java.en.*;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.Assert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -59,7 +57,26 @@ public class LoginSteps {
         driver.manage().window().maximize();
         // Implicit wait
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
     }
+
+    // Generic click helper (safe for headless and overlays)
+    public void clickElement(By locator) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
+        Actions actions = new Actions(driver);
+        actions.moveToElement(element).click().perform();
+    }
+
+    // Pass By locator, not WebElement
+    public void typeText(By locator, String text) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        element.clear();
+        element.sendKeys(text);
+    }
+
 
     @Given("user opens the NSW Stamp Duty page")
     public void openPage() {
@@ -94,9 +111,11 @@ public class LoginSteps {
     public void selectYesOption() {
         String option = properties.getProperty("vehicleOption");
         if(option.equalsIgnoreCase("Yes")) {
-            driver.findElement(By.xpath("//label[contains(text(),'Yes')]")).click();
+            //driver.findElement(By.xpath("//label[contains(text(),'Yes')]")).click();
+            clickElement(By.xpath("//label[contains(text(),'Yes')]"));
         } else {
-            driver.findElement(By.xpath("//label[contains(text(),'No')]")).click();
+            //driver.findElement(By.xpath("//label[contains(text(),'No')]")).click();
+            clickElement(By.xpath("//label[contains(text(),'No')]"));
         }
         System.out.println("Registration for passenger vehicle selected as "+option);
     }
@@ -104,8 +123,9 @@ public class LoginSteps {
     @When("user enters purchase price")
     public void enterPurchasePrice() {
         String amount = properties.getProperty("purchaseAmount");
-        WebElement priceField = driver.findElement(By.id("purchasePrice"));
-        priceField.sendKeys(amount);
+        //WebElement priceField = driver.findElement(By.id("purchasePrice"));
+        //priceField.sendKeys(amount);
+        typeText(By.id("purchasePrice"), amount);
         System.out.println("Purchase Price entered as "+amount);
     }
 

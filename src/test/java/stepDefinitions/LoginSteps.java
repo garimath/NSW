@@ -42,43 +42,20 @@ public class LoginSteps {
     }
 
     @Before("@login")
-    public void setUp() throws IOException {
-        // Load configuration
-        Properties props = new Properties();
-        FileInputStream fis = new FileInputStream("src/test/resources/config.properties");
-        props.load(fis);
-
-        String browser = props.getProperty("browser").toLowerCase();
-
-        if (browser.equals("chrome")) {
-            ChromeOptions options = new ChromeOptions();
-
-            if (System.getenv("CI") != null) {
-                options.addArguments("--headless=new");
-                options.addArguments("--no-sandbox");
-                options.addArguments("--disable-dev-shm-usage");
-                options.addArguments("--disable-gpu");
-            } else {
-                options.addArguments("--start-maximized");
-            }
-
-            WebDriverManager.chromedriver().setup();
-            driver = new ChromeDriver(options);
-
-        } else if (browser.equals("edge")) {
-            EdgeOptions options = new EdgeOptions();
-            if (System.getenv("CI") != null) {
-                options.addArguments("headless=new", "--no-sandbox", "--disable-gpu");
-            } else {
-                options.addArguments("--start-maximized");
-            }
-            WebDriverManager.edgedriver().setup(); // <-- automatically downloads correct Edge driver
-            driver = new EdgeDriver(options);
-        
-        } else {
-            throw new IllegalArgumentException("Browser not supported: " + browser);
-        }
-
+    public void setUp() {
+        // Configure ChromeOptions for headless mode (required in CI)
+        ChromeOptions options = new ChromeOptions();
+        // If running in CI → enable headless
+        if (System.getenv("CI") != null)
+        { options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--disable-gpu"); }
+        else { options.addArguments("--start-maximized"); }
+        // Initialize WebDriver with options
+        driver = new ChromeDriver(options);
+        driver.manage().window().maximize();
+        // Implicit wait
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
 

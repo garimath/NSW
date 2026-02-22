@@ -50,7 +50,9 @@ public class LoginSteps {
         { options.addArguments("--headless=new");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--disable-gpu"); }
+            options.addArguments("--disable-gpu");
+            options.addArguments("--window-size=1920,1080");
+        }
         else { options.addArguments("--start-maximized"); }
         // Initialize WebDriver with options
         driver = new ChromeDriver(options);

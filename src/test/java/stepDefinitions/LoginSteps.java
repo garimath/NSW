@@ -9,9 +9,12 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -39,26 +42,46 @@ public class LoginSteps {
     }
 
     @Before("@login")
-    public void setUp() {
-        // Configure ChromeOptions for headless mode (required in CI)
-        ChromeOptions options = new ChromeOptions();
+    public void setUp() throws IOException {
+        // Load configuration
+        Properties props = new Properties();
+        FileInputStream fis = new FileInputStream("src/test/resources/config.properties");
+        props.load(fis);
 
-        // If running in CI → enable headless
-        if (System.getenv("CI") != null) {
-            options.addArguments("--headless=new");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--disable-gpu");
+        String browser = props.getProperty("browser").toLowerCase();
+
+        if (browser.equals("chrome")) {
+            ChromeOptions options = new ChromeOptions();
+
+            if (System.getenv("CI") != null) {
+                options.addArguments("--headless=new");
+                options.addArguments("--no-sandbox");
+                options.addArguments("--disable-dev-shm-usage");
+                options.addArguments("--disable-gpu");
+            } else {
+                options.addArguments("--start-maximized");
+            }
+
+            WebDriverManager.chromedriver().setup();
+            driver = new ChromeDriver(options);
+
+        } else if (browser.equals("edge")) {
+            EdgeOptions options = new EdgeOptions();
+
+            if (System.getenv("CI") != null) {
+                options.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu");
+            } else {
+                options.addArguments("--start-maximized");
+            }
+
+            // Point to pre-downloaded EdgeDriver
+            System.setProperty("webdriver.edge.driver", "C:\\Drivers\\edgedriver_win64\\msedgedriver.exe");
+
+            driver = new EdgeDriver(options);
         } else {
-            options.addArguments("--start-maximized");
+            throw new IllegalArgumentException("Browser not supported: " + browser);
         }
 
-        // Initialize WebDriver with options
-        driver = new ChromeDriver(options);
-
-        driver.manage().window().maximize();
-
-        // Implicit wait
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
 

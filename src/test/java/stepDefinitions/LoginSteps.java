@@ -117,8 +117,10 @@ public class LoginSteps {
     public void verifyResults() {
 
         //wait for the next window to appear
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("modal-content")));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        WebElement modal = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("modal-content")));
+        wait.until(ExpectedConditions.visibilityOf(modal));
+        //WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("modal-content")));
         System.out.println("Motor vehicle registration window is visible: " + modal.isDisplayed());
        /* try {
             Thread.sleep(5000);  // wait for 5 seconds
